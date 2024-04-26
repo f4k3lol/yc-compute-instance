@@ -83,7 +83,7 @@ variable "nat_ip_address" {
   default = ""
 }
 
-variable "extra_disks" {
+variable "secondary_disks" {
   default = {}
   # {
   #   disk1 = { type = "network-hdd", size = "15", auto_delete = true, device_name = "/mnt/disk1", mode = "READ_WRITE" }

@@ -1,15 +1,15 @@
 locals {
   security_groups = try(toset(jsondecode(var.security_groups)), toset(var.security_groups))
-  extra_disks = try(jsondecode(var.extra_disks), var.extra_disks)
+  secondary_disks = try(jsondecode(var.secondary_disks), var.secondary_disks)
   metadata = try(jsondecode(var.metadata), var.metadata)
 }
 
-resource "yandex_compute_disk" "extra_disk" {
-  for_each = local.extra_disks
+resource "yandex_compute_disk" "secondary_disk" {
+  for_each = { for k,v in local.secondary_disks : k => v if length(lookup(v, "id", "")) == 0 }
   name     = "${var.name}-${each.key}"
   size     = each.value.size
   type     = each.value.type
-  zone     = var.zone
+  zone     = "ru-central1-${var.zone}"
 }
 
 data "yandex_compute_image" "image" {
@@ -54,11 +54,10 @@ resource "yandex_compute_instance" "vm" {
     }
   }
 
-  #присоединяем диски если есть переменная extra_disk_type
   dynamic "secondary_disk" {
-    for_each = local.extra_disks
+    for_each = local.secondary_disks
     content {
-      disk_id = yandex_compute_disk.extra_disk[secondary_disk.key].id
+      disk_id = length(lookup(secondary_disk.value, "id", "")) == 0 ? yandex_compute_disk.secondary_disk[secondary_disk.key].id : secondary_disk.value.id
       auto_delete = lookup(secondary_disk.value, "auto_delete", null)
       device_name = lookup(secondary_disk.value, "device_name", null)
       mode = lookup(secondary_disk.value, "mode", null)
@@ -74,3 +73,4 @@ resource "yandex_compute_instance" "vm" {
 
   metadata = local.metadata
 }
+
