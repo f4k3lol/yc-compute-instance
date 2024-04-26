@@ -58,10 +58,10 @@ resource "yandex_compute_instance" "vm" {
   dynamic "secondary_disk" {
     for_each = local.extra_disks
     content {
-      disk_id = yandex_compute_disk.extra_disk[each.key].id
-      auto_delete = lookup(each.value, "auto_delete", null)
-      device_name = lookup(each.value, "device_name", null)
-      mode = lookup(each.value, "mode", null)
+      disk_id = yandex_compute_disk.extra_disk[secondary_disk.key].id
+      auto_delete = lookup(secondary_disk.value, "auto_delete", null)
+      device_name = lookup(secondary_disk.value, "device_name", null)
+      mode = lookup(secondary_disk.value, "mode", null)
     }
   }
 
